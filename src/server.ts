@@ -1,10 +1,13 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
+import users from './routes/users';
+import cors from 'cors';
 
 const app = express();
 
-app.get('/', (req: Request, res: Response) => {
-	return res.send('Hello World!');
-});
+app.use(express.json());
+app.use(cors());
+
+app.use('/users', users);
 
 app.listen(3333, () => {
 	console.log('Server is running. Open it at localhost:3333');
