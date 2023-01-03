@@ -2,6 +2,7 @@ import { prisma } from '../lib/prisma';
 import express, { Request, Response } from 'express';
 import { User } from '@prisma/client';
 import { z } from 'zod';
+import { validateUserData } from '../models/user';
 
 const router = express.Router();
 
@@ -13,7 +14,7 @@ router.get('/signIn', async ( req:Request, res:Response ) => {
 			username: z.string()
 				.min(3, {message: 'nome do usuário deve possuir ao menos 3 caracteres'})
 				.max(30, {message: 'nome do usuário deve possuir no máximo 30 caracteres'}), 
-			password: z.string()
+			password: z.string().regex(/(?=.*[A-Z]{1})(?=.*[a-zA-Z0-9]{8})/g)
 		});
   
 		try {
@@ -39,11 +40,18 @@ router.get('/signIn', async ( req:Request, res:Response ) => {
 		} catch (error) {
 			return res.status(400).json({message: 'não foi possível efeituar cadastro', error});
 		}
+		return res.json(createdUser);
 	}
 
 	await createUserOnDb();
+});
 
-	return res.json(createdUser);
+router.get('/test', async(req, res) => {
+	
+
+	return res.json({
+		data:validateUserData('thiago123', 'abcdefg123A')
+	} );
 });
 
 export default router;
