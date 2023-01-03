@@ -36,19 +36,31 @@ router.get('/signUp', async (req: Request, res: Response) => {
 router.get('/signIn', async (req: Request, res: Response) => {
 	const { username, password } = req.body;
 
-	const findUserByUsername = await prisma.user.findUnique({ where: {username}});
-	const hasUserWithReqUsername = findUserByUsername != null;
+	const findUserByUsername = await prisma.user.findUnique({ where: {username}}) as User;
+	
+	function checkIfUserExists() {
+		const hasUserWithReqUsername = findUserByUsername != null;
 
-	if(hasUserWithReqUsername) {
-		bcrypt.compare(password, findUserByUsername.password , () => {
-			const token = generateJWT(findUserByUsername);
+		if(!hasUserWithReqUsername) return res
+			.status(400)
+			.json({ message: 'username inválido. Tente novamente' });	
+	}	
 
-			return res.json({token});
-		});	
+	async function generateJWTIfPasswordMatch() {
+		const isPasswordMatched = await bcrypt.compare(password, findUserByUsername.password);
+		console.log(isPasswordMatched);
+
+		if(!isPasswordMatched) return res
+			.status(400)
+			.json({message: 'senha não coincide com o username. Tente novamente'});
+
+		const token = generateJWT(findUserByUsername);
+		return res.json({token});
 	}
-	else {	
-		return res.status(400).json({message: 'Credenciais inválidas. Tente novamente'});
-	}
+
+	checkIfUserExists();
+	generateJWTIfPasswordMatch();
+
 });
 
 export default router;
