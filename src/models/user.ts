@@ -11,9 +11,13 @@ export function validateUserData(username: string, password:string) {
 		password: z
 			.string()
 			.regex(/(?=.*[A-Z]{1})(?=.*[a-zA-Z0-9]{8})/g),
-		// 8 caracteres e ao menos um sendo letra maiúscula
+		// 8 caracteres e ao menos um sendo letra maiuscula
 	});
 
-	try { user.parse({ username, password });} 
-	catch (error) { return error; }
+	try { 
+		user.parse({ username, password });
+
+		return {isUserValid: true};
+	} 
+	catch (error) { return {isUserValid: false, error};}
 }
