@@ -12,3 +12,4 @@ app.use('/users', users);
 app.listen(3333, () => {
 	console.log('Server is running. Open it at localhost:3333');
 });
+  
