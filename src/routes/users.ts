@@ -7,7 +7,7 @@ import { generateJWT } from '../lib/jsonWebToken';
 
 const router = express.Router();
 
-router.get('/signUp', async (req: Request, res: Response) => {
+router.post('/signUp', async (req: Request, res: Response) => {
 	const { username, password } = req.body;
 	const { isUserValid, error } = validateUserData(username, password);
 
@@ -33,7 +33,7 @@ router.get('/signUp', async (req: Request, res: Response) => {
 	await createUserOnDb();
 });
 
-router.get('/signIn', async (req: Request, res: Response) => {
+router.post('/signIn', async (req: Request, res: Response) => {
 	const { username, password } = req.body;
 
 	const findUserByUsername = await prisma.user.findUnique({ where: {username}}) as User;
