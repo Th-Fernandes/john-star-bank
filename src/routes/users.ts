@@ -1,5 +1,5 @@
-import { prisma } from '../lib/prisma';
 import express, { Request, Response } from 'express';
+import { prisma } from '../lib/prisma';
 import { User } from '@prisma/client';
 import { validateUserData } from '../models/user';
 import bcrypt from 'bcrypt';
@@ -48,19 +48,19 @@ router.post('/signIn', async (req: Request, res: Response) => {
 
 	async function generateJWTIfPasswordMatch() {
 		const isPasswordMatched = await bcrypt.compare(password, findUserByUsername.password);
-		console.log(isPasswordMatched);
 
 		if(!isPasswordMatched) return res
 			.status(400)
 			.json({message: 'senha não coincide com o username. Tente novamente'});
 
 		const token = generateJWT(findUserByUsername);
-		return res.json({token});
+		
+		res.cookie('token', token , { maxAge:  86400 /* 1 dia em seg*/, httpOnly: true, sameSite: 'strict' });
+		return res.json({token}).send();
 	}
 
 	checkIfUserExists();
 	generateJWTIfPasswordMatch();
-
 });
 
 export default router;
