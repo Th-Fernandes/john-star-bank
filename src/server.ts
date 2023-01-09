@@ -1,6 +1,7 @@
 import express from 'express';
 import users from './routes/users';
 import account from './routes/account';
+import transactions from './routes/transactions';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 
@@ -12,6 +13,7 @@ app.use(express.json());
 
 app.use('/users', users);
 app.use('/account', account);
+app.use('/transactions', transactions);
 
 app.listen(3333, () => {
 	console.log('Server is running. Open it at localhost:3333');

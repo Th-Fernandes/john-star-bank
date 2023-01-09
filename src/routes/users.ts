@@ -56,7 +56,7 @@ router.post('/signIn', async (req: Request, res: Response) => {
 		const token = generateJWT(findUserByUsername);
 		console.log(token);
 		
-		res.cookie('token', token , { maxAge:  86400 /* 1 dia em seg*/, httpOnly: true, sameSite: 'strict' });
+		res.cookie('token', token , { maxAge:  1000 * 60 * 24 /* 1 dia em miliseg*/, httpOnly: true, sameSite: 'strict' });
 		return res.json({token}).send();
 	}
 
