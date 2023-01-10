@@ -4,7 +4,7 @@ import { prisma } from '../lib/prisma';
 interface CashOutConstructor {
   reqUsername: string;
   loggedUsername: string;
-  amount: number
+  amount: number;
 }
 
 export class CashOutService {
@@ -29,7 +29,6 @@ export class CashOutService {
 	}
 
 	async verifyIfCashOutIsDoingForItself(errors: unknown[]) {
-    
 		const isUsernamesTheSame = this.reqUsername === this.loggedUsername;
 
 		if (!isUsernamesTheSame) return;
@@ -65,34 +64,47 @@ export class CashOutService {
 	}
 
 	async cashOut() {
+		async function changeBalanceAmount(
+			username: string,
+			operation: 'sum' | 'subtract',
+			value: number
+		) {
+			const user = (await prisma.user.findUnique({
+				where: { username },
+			})) as User;
 
-		async function subtractFromLoggedUser(username: string, value: number) {
-			const user = await prisma.user.findUnique({
-				where: { id: username}
-			}) as User;
-
-			const account = await prisma.account.findUnique({
-				where: { id: user.accountId}
-			});
-
-			if(user && account) {
-				const updateBalance = await prisma.account.update({
+			if (user) {
+				const account = await prisma.account.findUnique({
 					where: { id: user.accountId },
-					data: { balance:  account?.balance - value}
 				});
-			} else {
-				console.log('???');
+
+				if (account) {
+					const result = {
+						sum: account.balance + value,
+						subtract: account.balance - value,
+					};
+
+					await prisma.account.update({
+						where: { id: account.id },
+						data: {
+							balance: result[operation],
+						},
+					});
+				}
 			}
 		}
+	
+		await changeBalanceAmount(this.loggedUsername, 'subtract', this.amount);
+		await changeBalanceAmount(this.reqUsername, 'sum', this.amount);
 
-		// await prisma.transaction.create({
-		// 	data: {
-		// 		value: 20,
-		// 		creditedAccountId: '2323',
-		// 		debitedAccountId: '121212',
-		// 	},
-		// });
-
-		subtractFromLoggedUser(this.loggedUsername, this.amount);
+		// async function registerCashOutOnTransactionModel (amount:number) {
+		// 	await prisma.transaction.create({
+		// 		data: {
+		// 			value: amount,
+		// 			creditedAccountId: '2323',
+		// 			debitedAccountId: '121212',
+		// 		},
+		// 	});
+		// }
 	}
 }
