@@ -64,47 +64,46 @@ export class CashOutService {
 	}
 
 	async cashOut() {
+		const users:User[] = [];
+
 		async function changeBalanceAmount(
 			username: string,
-			operation: 'sum' | 'subtract',
+			operation: 'sum' | 'subtract' ,
 			value: number
 		) {
-			const user = (await prisma.user.findUnique({
-				where: { username },
-			})) as User;
+			try {
+				const user = await prisma.user.findUniqueOrThrow({
+					where: { username },
+					include: { account: {} }
+				}); 
+				users.push(user as User);		
 
-			if (user) {
-				const account = await prisma.account.findUnique({
-					where: { id: user.accountId },
+				const result = {
+					sum: user.account.balance + value,
+					subtract: user.account.balance - value,
+				};
+
+				await prisma.account.update({
+					where: { id: user.account.id },
+					data: { balance: result[operation] }
 				});
-
-				if (account) {
-					const result = {
-						sum: account.balance + value,
-						subtract: account.balance - value,
-					};
-
-					await prisma.account.update({
-						where: { id: account.id },
-						data: {
-							balance: result[operation],
-						},
-					});
-				}
+			} catch(err) {
+				console.error(err);
 			}
 		}
 	
+		async function registerCashOutOnTransactionModel (amount:number) {
+			await prisma.transaction.create({
+				data: {
+					value: amount,
+					creditedAccountId: users[0].accountId,
+					debitedAccountId: users[1].accountId,
+				},
+			});
+		}
+
 		await changeBalanceAmount(this.loggedUsername, 'subtract', this.amount);
 		await changeBalanceAmount(this.reqUsername, 'sum', this.amount);
-
-		// async function registerCashOutOnTransactionModel (amount:number) {
-		// 	await prisma.transaction.create({
-		// 		data: {
-		// 			value: amount,
-		// 			creditedAccountId: '2323',
-		// 			debitedAccountId: '121212',
-		// 		},
-		// 	});
-		// }
+		await registerCashOutOnTransactionModel(this.amount);
 	}
 }

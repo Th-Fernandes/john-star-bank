@@ -3,6 +3,8 @@ import { verifyJWT } from '../lib/JWT/verify';
 import jwt from 'jsonwebtoken';
 import { User } from '@prisma/client';
 import { CashOutService } from '../services/cash-out';
+import { db } from '../services/db';
+import { JWT } from '../@types/JWT';
 
 const router = express.Router();
 
@@ -33,5 +35,19 @@ router.post('/cash-out',
 		return res.json({ message: 'ok' });
 	}
 );
+
+router.get('/cash-out', verifyJWT , async (req:Request, res:Response) => {
+	const { getUserTransactions } = new db();
+	const { token } = req.cookies;
+	const { username } = jwt.decode(token) as JWT;
+	
+	const transactions = await getUserTransactions({
+		where: {
+			username: username
+		}
+	});
+
+	return res.json(transactions);
+});	
 
 export default router;
