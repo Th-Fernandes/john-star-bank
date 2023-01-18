@@ -1,7 +1,16 @@
 import { prisma } from '../lib/prisma';
 
+interface UserSearch {
+  where: {
+    id?: string;
+    username?: string;
+    password?: string;
+    accountId?: string
+  }
+}
+
 export class db {
-	async getUser({where}:any) {
+	async getUser( { where }: UserSearch ) {
 		const user = await prisma.user.findUniqueOrThrow({
 			where
 		});
@@ -9,10 +18,8 @@ export class db {
 		return user;
 	}
 
-	async getUserTransactions({where}:any) {
-		const userData = await prisma.user.findFirstOrThrow({
-			where
-		});
+	async getUserTransactions( { where }: UserSearch ) {
+		const userData = await prisma.user.findFirstOrThrow({ where });
 
 		const userTransactions = await prisma.transaction.findMany({
 			where: {
@@ -23,7 +30,11 @@ export class db {
 			},
 			select: {
 				debitedAccount: {},
-				creditedAccount: {}
+				creditedAccount: {},
+				createdAt: true
+			},
+			orderBy: { 
+				createdAt: 'desc',
 			}
 		});
 

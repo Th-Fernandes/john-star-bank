@@ -36,15 +36,15 @@ router.post('/cash-out',
 	}
 );
 
-router.get('/cash-out', verifyJWT , async (req:Request, res:Response) => {
+router.get('/all', verifyJWT , async (req:Request, res:Response) => {
 	const { getUserTransactions } = new db();
 	const { token } = req.cookies;
 	const { username } = jwt.decode(token) as JWT;
-	
+	const { filter } = req.params;
+
+
 	const transactions = await getUserTransactions({
-		where: {
-			username: username
-		}
+		where: { username }
 	});
 
 	return res.json(transactions);
